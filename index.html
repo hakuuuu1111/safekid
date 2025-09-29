@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SafeKid - Kontrol Aktivitas Anak</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Reset dan font */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    body, html {
+      height: 100%;
+      background-color: #f0f4f8;
+      color: #34495e;
+      scroll-behavior: smooth;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 220px;
+      height: 100vh;
+      background-color: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+
+/* Update the font specifically for the logo */
+.logo {
+  font-family: 'Playfair Display', serif; /* Use the new font for the logo */
+  font-size: 2.2rem; /* Make it slightly larger to stand out */
+  font-weight: 700;
+  margin-bottom: 40px;
+  letter-spacing: 2px;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Style the logo image itself */
+.logo-img {
+  height: 50px; /* Adjust the height to your preference */
+  width: auto; /* Maintains the image's aspect ratio */
+}
+
+    /* Sidebar tombol menu */
+    .sidebar nav .menu {
+      width: 100%;
+      padding: 15px 20px;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      background: none;
+      border: none;
+      outline: none;
+      color: white;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar nav .menu:hover,
+    .sidebar nav .menu.active {
+      background-color: #1abc9c;
+      color: #fff;
+      box-shadow: 0 0 10px #1abc9caa;
+    }
+
+    .sidebar nav .logout a {
+      color: white;
+      display: block;
+      padding: 15px 20px;
+      border-radius: 8px;
+      background-color: #e74c3c;
+      text-align: center;
+      margin-top: auto;
+      transition: background-color 0.3s ease;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+    }
+
+    .sidebar nav .logout a:hover {
+      background-color: #c0392b;
+    }
+
+    /* Tombol buka sidebar (mobile) */
+    .sidebar-toggle {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: #1abc9c;
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      z-index: 1100;
+      box-shadow: 0 2px 8px rgba(26, 188, 156, 0.6);
+      user-select: none;
+    }
+
+    /* Tombol tutup sidebar */
+    .close-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      font-size: 1.8rem;
+      color: white;
+      margin-bottom: 20px;
+      cursor: pointer;
+      text-align: right;
+      align-self: flex-end;
+    }
+
+    /* Konten utama */
+    .main-content {
+      margin-left: 220px;
+      padding: 30px 40px;
+      min-height: 100vh;
+      transition: margin-left 0.3s ease;
+    }
+
+    /* Section konten */
+    .content {
+      display: none;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    .content.active {
+      display: block;
+    }
+
+    /* Animasi fadeIn */
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+
+    /* Judul */
+    h1 {
+      margin-bottom: 25px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: #2c3e50;
+    }
+
+    /* Statistik ringkas grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .stat-box {
+      background: white;
+      padding: 25px 20px;
+      border-radius: 14px;
+      text-align: center;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: default;
+      user-select: none;
+    }
+
+    .stat-box:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    .stat-box h2 {
+      font-size: 2.4rem;
+      color: #1abc9c;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .stat-box p {
+      color: #555;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    /* Feature box */
+    .feature-box {
+      background: white;
+      padding: 25px 30px;
+      margin-bottom: 25px;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .feature-box h3 {
+      color: #2c3e50;
+      margin-bottom: 12px;
+      font-weight: 700;
+      font-size: 1.3rem;
+    }
+
+    .feature-box p {
+      color: #555;
+      margin-bottom: 18px;
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+
+    .feature-box button {
+      background-color: #1abc9c;
+      color: white;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .feature-box button:hover {
+      background-color: #16a085;
+    }
+
+    .feature-box:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    }
+
+    /* Settings grid */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+    }
+
+    /* Setting box */
+    .setting-box {
+      background: white;
+      padding: 25px 30px;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+    }
+
+    .setting-box:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    .setting-box h2 {
+      margin-bottom: 18px;
+      font-size: 1.3rem;
+      color: #2c3e50;
+      font-weight: 700;
+    }
+
+    .setting-box form {
+      margin-bottom: 15px;
+    }
+
+    .setting-box label {
+      font-weight: 600;
+      color: #34495e;
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .setting-box input[type="text"],
+    .setting-box input[type="number"],
+    .setting-box input[type="time"],
+    .setting-box input[type="password"],
+    .setting-box input[type="email"] {
+      width: 100%;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      border-radius: 8px;
+      border: 1.5px solid #ccc;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    .setting-box input[type="text"]:focus,
+    .setting-box input[type="number"]:focus,
+    .setting-box input[type="time"]:focus,
+    .setting-box input[type="password"]:focus,
+    .setting-box input[type="email"]:focus {
+      border-color: #1abc9c;
+      outline: none;
+    }
+
+    .setting-box input[type="checkbox"],
+    .setting-box input[type="radio"] {
+      margin-right: 12px;
+      transform: scale(1.3);
+      cursor: pointer;
+    }
+
+    .setting-box button {
+      background-color: #1abc9c;
+      color: white;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .setting-box button:hover {
+      background-color: #16a085;
+    }
+
+    /* Iframe lokasi */
+    iframe {
+      border: none;
+      border-radius: 12px;
+      width: 100%;
+      height: 400px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.3s ease;
+    }
+    iframe:hover {
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Dark Mode */
+    body.dark, html.dark {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+
+    body.dark .sidebar {
+      background-color: #1f1f1f;
+    }
+
+    body.dark .sidebar nav .menu.active,
+    body.dark .sidebar nav .menu:hover {
+      background-color: #16a085;
+      box-shadow: 0 0 10px rgb(22,160, 133, 0.6);
+    }
+
+    body.dark .feature-box,
+    body.dark .setting-box,
+    body.dark .stat-box {
+      background: #242424;
+      color: #e0e0e0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    }
+
+    body.dark h1,
+    body.dark h2,
+    body.dark label,
+    body.dark p {
+      color: #ffffff;
+    }
+
+    body.dark input[type="text"],
+    body.dark input[type="number"],
+    body.dark input[type="time"],
+    body.dark input[type="password"],
+    body.dark input[type="email"] {
+      background: #353b48;
+      color: #ecf0f1;
+      border: 1px solid #555;
+    }
+ /* Styling untuk Card Theme Options (container) */
+.theme-card-options {
+  display: flex;
+  gap: 20px;
+  justify-content: space-around;
+  margin-top: 15px;
+}
+
+/* Styling untuk tiap Card */
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 10px;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 150px;
+  user-select: none;
+}
+
+.theme-card:hover {
+  border-color: #1abc9c;
+  box-shadow: 0 4px 10px rgba(26, 188, 156, 0.2);
+}
+
+.theme-card i {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  color: #34495e;
+}
+
+.theme-card span {
+  font-weight: 600;
+}
+
+/* Style ketika Card terpilih */
+.theme-card input:checked + i,
+.theme-card input:checked ~ span {
+  color: #1abc9c;
+}
+
+.theme-card input:checked + i {
+  border: 2px solid #1abc9c; 
+  border-radius: 12px;
+  background-color: #1abc9c10;
+}
+
+/* Dark Mode Card Styles */
+body.dark .theme-card {
+  border: 2px solid #555;
+  background: #353b48;
+}
+
+body.dark .theme-card i {
+  color: #ecf0f1;
+}
+
+body.dark .theme-card:hover {
+  border-color: #1abc9c;
+}
+
+body.dark .theme-card input:checked + i,
+body.dark .theme-card input:checked ~ span {
+  color: #1abc9c;
+}
+
+/* Responsive adjustment */
+@media (max-width: 480px) {
+  .theme-card-options {
+    flex-direction: column;
+    align-items: center;
+  }
+  .theme-card {
+    max-width: 200px;
+  }
+}
+
+/* Media Queries untuk Tampilan Mobile (Lebar layar maksimal 768px) */
+@media (max-width: 768px) {
+    
+    /* 1. Sembunyikan Sidebar secara default */
+    .sidebar {
+        transform: translateX(-100%); /* Geser sidebar keluar layar */
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Efek bayangan untuk transisi */
+    }
+
+    /* 2. Tampilkan Tombol Toggle Sidebar */
+    .sidebar-toggle {
+        display: block;
+    }
+
+    /* 3. Tampilkan Tombol Tutup Sidebar */
+    .close-btn {
+        display: block;
+    }
+
+    /* 4. Penyesuaian Konten Utama */
+    .main-content {
+        margin-left: 0; /* Hilangkan margin sidebar */
+        padding: 80px 20px 30px 20px; /* Tambahkan padding atas */
+    }
+
+    /* 5. Ukuran Logo di Mobile */
+    .logo {
+        font-size: 1.8rem;
+    }
+}
+
+
+  </style>
+</head>
+<body>
+
+<!-- Tombol buka sidebar (hanya tampil di HP) -->
+<button id="openSidebar" class="sidebar-toggle" aria-label="Buka menu sidebar">☰</button>
+
+<!-- Sidebar -->
+ <div id="sidebar" class="sidebar" aria-label="Sidebar navigasi">
+  <div class="logo">
+    <img src="safekid_logo.svg" alt="SafeKid Logo" class="logo-img">
+    SafeKid
+  </div>
+  <button id="closeSidebar" class="close-btn" aria-label="Tutup menu sidebar">✖</button>
+<nav>
+    <button class="menu active" data-target="dashboard" aria-current="page"><i class="fas fa-home"></i> Dashboard</button>
+    <button class="menu" data-target="activity"><i class="fas fa-chart-line"></i> Aktivitas</button>
+    <button class="menu" data-target="controls"><i class="fas fa-sliders-h"></i> Kontrol</button>
+    <button class="menu" data-target="location"><i class="fas fa-map-marker-alt"></i> Lokasi Anak</button>
+    <button class="menu" data-target="account"><i class="fas fa-user-circle"></i> Akun</button>
+    <div class="menu logout">
+      <a href="#" tabindex="0"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+</nav>
+</div>
+
+<main class="main-content" tabindex="-1">
+  <!-- Dashboard -->
+  <section id="dashboard" class="content active" role="region" aria-label="Dashboard">
+    <h1>Dashboard</h1>
+
+    <!-- Statistik Ringkas -->
+    <div class="stats-grid">
+      <div class="stat-box" tabindex="0">
+        <h2>2h 15m</h2>
+        <p>Waktu Online Hari Ini</p>
+      </div>
+      <div class="stat-box" tabindex="0">
+        <h2>YouTube</h2>
+        <p>Aplikasi Teratas</p>
+      </div>
+      <div class="stat-box" tabindex="0">
+        <h2>5</h2>
+        <p>Situs Diblokir</p>
+      </div>
+    </div>
+
+    <!-- Fitur Utama -->
+<div class="feature-box">
+  <h3>📊 Monitoring Aktivitas</h3>
+  <p>Menampilkan data aktivitas anak secara real-time dan menganalisisnya menggunakan AI.</p>
+  <button class="goto" data-target="activity">Lihat Aktivitas</button>
+</div>
+
+<div class="feature-box">
+  <h3>🔒 Filter Konten</h3>
+  <p>Memblokir otomatis situs pornografi dan situs berbahaya.</p>
+  <button class="goto" data-target="controls">Atur Filter</button>
+</div>
+
+<div class="feature-box">
+  <h3>⚠️ Peringatan Real-Time</h3>
+  <p>Mengirimkan peringatan ke orang tua saat terdeteksi pola berisiko atau konten terlarang.</p>
+  <button class="goto" data-target="controls">Lihat Peringatan</button>
+</div>
+
+<div class="feature-box">
+  <h3>⏰ Pengaturan Waktu</h3>
+  <p>Menjadwalkan kapan anak boleh menggunakan HP.</p>
+  <button class="goto" data-target="controls">Atur Jadwal</button>
+</div>
+
+  </section>
+
+  <!-- Aktivitas -->
+  <section id="activity" class="content" role="region" aria-label="Aktivitas Anak">
+    <h1>Aktivitas Anak</h1>
+    <canvas id="activityChart" aria-label="Grafik aktivitas anak" role="img"></canvas>
+  </section>
+
+  <!-- Kontrol Orang Tua -->
+  <section id="controls" class="content" role="region" aria-label="Kontrol Orang Tua">
+    <h1>Kontrol Orang Tua</h1>
+    <div class="settings-grid">
+      <!-- Jadwal -->
+      <div class="setting-box">
+        <h2>⏰ Jadwal Penggunaan</h2>
+        <form id="scheduleForm">
+          <label for="startTime">Mulai Bermain HP:</label>
+          <input type="time" id="startTime" name="startTime" required />
+          <label for="endTime">Berhenti Bermain HP:</label>
+          <input type="time" id="endTime" name="endTime" required />
+          <button type="submit">Simpan Jadwal</button>
+        </form>
+        <p id="scheduleMessage" aria-live="polite"></p>
+      </div>
+
+      <!-- Filter -->
+      <div class="setting-box">
+        <h2>🔒 Filter Konten</h2>
+        <form id="filterForm">
+          <label><input type="checkbox" name="filter" value="pornografi"> Blokir Pornografi</label><br>
+          <label><input type="checkbox" name="filter" value="kekerasan"> Blokir Kekerasan</label><br>
+          <label><input type="checkbox" name="filter" value="sosmed"> Batasi Media Sosial</label><br><br>
+          <label for="customSite">Tambahkan Situs yang Diblokir:</label>
+          <input type="text" id="customSite" name="customSite" placeholder="contoh: tiktok.com" />
+          <button type="submit">Simpan Filter</button>
+        </form>
+      </div>
+
+      <!-- Notifikasi -->
+      <div class="setting-box">
+        <h2>⚠️ Notifikasi</h2>
+        <label><input type="checkbox" id="alertToggle"> Aktifkan notifikasi real-time</label>
+      </div>
+
+      <!-- Batas Harian -->
+      <div class="setting-box">
+        <h2>📉 Batasan Waktu Harian</h2>
+        <label for="dailyLimit">Maksimal penggunaan per hari (jam):</label>
+        <input type="number" id="dailyLimit" name="dailyLimit" min="1" max="12" value="2" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Lokasi Anak -->
+  <section id="location" class="content" role="region" aria-label="Lokasi Anak">
+    <h1>Lokasi Anak</h1>
+    <iframe 
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126764.72684668587!2d106.689431!3d-6.229728!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f1572c3e93b1%3A0x301576d14febd20!2sJakarta!5e0!3m2!1sid!2sid!4v1695012345678"
+      width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy" title="Peta lokasi anak">
+    </iframe>
+  </section>
+
+  <!-- Akun -->
+  <section id="account" class="content" role="region" aria-label="Pengaturan Akun">
+    <h1>Pengaturan Akun</h1>
+    <div class="settings-grid">
+      <div class="setting-box">
+        <h2>👤 Informasi Akun</h2>
+        <form id="accountForm">
+          <label for="name">Nama:</label>
+          <input type="text" id="name" name="name" placeholder="Nama Anda" />
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" placeholder="email@contoh.com" />
+          <button type="submit">Simpan Akun</button>
+        </form>
+      </div>
+
+      <div class="setting-box">
+        <h2>🔑 Ubah Password</h2>
+        <form id="passwordForm">
+          <label for="oldPassword">Password Lama:</label>
+          <input type="password" id="oldPassword" name="oldPassword" required />
+          <label for="newPassword">Password Baru:</label>
+          <input type="password" id="newPassword" name="newPassword" required />
+          <button type="submit">Ubah Password</button>
+        </form>
+      </div>
+
+<div class="setting-box">
+  <h2>🎨 Tema Aplikasi</h2>
+    <form id="themeForm"> 
+    <div class="theme-card-options">
+      <label class="theme-card" data-theme="light">
+        <input type="radio" name="theme" value="light" checked style="display: none;">
+        <i class="fas fa-sun"></i>
+        <span>Light Mode</span>
+      </label>
+      <label class="theme-card" data-theme="dark">
+        <input type="radio" name="theme" value="dark" style="display: none;">
+        <i class="fas fa-moon"></i>
+        <span>Dark Mode</span>
+      </label>
+    </div>
+  </form>
+</div>
+    </div>
+  </section>
+
+   <section id="activity" class="content" role="region" aria-label="Aktivitas Anak">
+    <h1>Aktivitas Anak</h1>
+    <canvas id="activityChart" aria-label="Grafik aktivitas anak" role="img"></canvas>
+  </section>
+
+</main>
+<script>
+// === Fungsi Navigasi Utama (Dipanggil oleh Sidebar & Tombol Dashboard) ===
+const sidebar = document.getElementById("sidebar");
+const menus = document.querySelectorAll('.sidebar nav .menu');
+const contents = document.querySelectorAll('.content');
+
+function showPage(target) {
+  // 1. Hapus kelas 'active' dari semua konten dan menu
+  contents.forEach(c => c.classList.remove('active'));
+  menus.forEach(m => m.classList.remove('active'));
+
+  // 2. Tambahkan kelas 'active' ke konten dan menu yang dituju
+  const section = document.getElementById(target);
+  if (section) section.classList.add('active');
+  document.querySelector(`.menu[data-target="${target}"]`)?.classList.add('active');
+
+  // 3. Simpan halaman ke localStorage
+  localStorage.setItem("activePage", target);
+
+  // 4. Tutup sidebar di mobile jika sedang dibuka
+  if (window.innerWidth <= 768 && sidebar) {
+    sidebar.style.transform = "translateX(-100%)";
+  }
+}
+
+// === Sidebar Responsive (Buka/Tutup di Mobile) ===
+const openSidebar = document.getElementById("openSidebar");
+const closeSidebar = document.getElementById("closeSidebar");
+
+if (openSidebar && closeSidebar && sidebar) {
+  openSidebar.addEventListener("click", () => {
+    sidebar.style.transform = "translateX(0)";
+  });
+  closeSidebar.addEventListener("click", () => {
+    sidebar.style.transform = "translateX(-100%)";
+  });
+}
+
+// === Event Listener Navigasi Menu Sidebar ===
+menus.forEach(menu => {
+  menu.addEventListener('click', () => {
+    const target = menu.getAttribute('data-target');
+    if (target) {
+      showPage(target);
+    }
+  });
+});
+
+// === Event Listener Tombol Feature Box (GoTo di Dashboard) ===
+// Menggunakan class "goto" yang sudah diperbaiki di HTML
+document.querySelectorAll(".goto").forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.getAttribute('data-target');
+    if (target) {
+      showPage(target);
+    }
+  });
+});
+
+// === Restore halaman aktif saat reload (FIXED) ===
+window.addEventListener("load", () => {
+  const savedPage = localStorage.getItem("activePage") || "dashboard";
+  showPage(savedPage);
+
+  // --- Perbaikan Logic Penerapan Tema Saat Load ---
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+    document.documentElement.classList.add("dark"); // PERBAIKAN: Terapkan ke <html>
+    // Pastikan radio button 'dark' terpilih
+    const darkRadio = document.querySelector('input[value="dark"]'); // Hapus #themeForm untuk keandalan
+    if (darkRadio) darkRadio.checked = true;
+  } else {
+    document.documentElement.classList.remove("dark"); // Pastikan <html> bersih jika Light
+    // Pastikan radio button 'light' terpilih jika tidak dark
+    const lightRadio = document.querySelector('input[value="light"]'); // Hapus #themeForm untuk keandalan
+    if (lightRadio) lightRadio.checked = true;
+  }
+});
+
+// === Chart Aktivitas (menggunakan Chart.js) ===
+const ctx = document.getElementById('activityChart');
+if (ctx) {
+  new Chart(ctx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+      datasets: [{
+        label: 'Waktu Online (jam)',
+        data: [2, 3, 2.5, 4, 3, 2, 1.5],
+        backgroundColor: 'rgba(26, 188, 156, 0.2)',
+        borderColor: '#1abc9c',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 5,
+        pointBackgroundColor: '#1abc9c',
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+}
+
+// === Form Jadwal ===
+const scheduleForm = document.getElementById('scheduleForm');
+const scheduleMessage = document.getElementById('scheduleMessage');
+
+if (scheduleForm) {
+  scheduleForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const start = scheduleForm.startTime.value;
+    const end = scheduleForm.endTime.value;
+
+    if (start >= end) {
+      scheduleMessage.style.color = '#e74c3c'; // Merah
+      scheduleMessage.textContent = '❌ Waktu mulai harus sebelum waktu selesai.';
+      return;
+    }
+
+    scheduleMessage.style.color = '#27ae60'; // Hijau
+    scheduleMessage.textContent = `✅ Jadwal disimpan: ${start} sampai ${end}`;
+    // Tidak di-reset agar nilai tetap terlihat
+  });
+}
+
+// === Form Filter Konten ===
+const filterForm = document.getElementById('filterForm');
+if (filterForm) {
+  filterForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const checkedFilters = [...filterForm.querySelectorAll('input[name="filter"]:checked')].map(cb => cb.value);
+    const customSite = filterForm.customSite.value.trim();
+
+    console.log("Filter dipilih:", checkedFilters);
+    if (customSite) console.log("Tambahan blokir:", customSite);
+
+    alert("✅ Filter berhasil disimpan!");
+    // Tidak di-reset agar nilai tetap terlihat
+  });
+}
+
+// === Toggle Notifikasi ===
+const alertToggle = document.getElementById('alertToggle');
+if (alertToggle) {
+  alertToggle.addEventListener('change', () => {
+    if (alertToggle.checked) {
+      alert("🔔 Notifikasi real-time diaktifkan");
+    } else {
+      alert("🔕 Notifikasi real-time dimatikan");
+    }
+  });
+}
+
+// === Batasan Waktu Harian ===
+const dailyLimit = document.getElementById('dailyLimit');
+if (dailyLimit) {
+  dailyLimit.addEventListener('change', () => {
+    alert(`✅ Batas harian diset: ${dailyLimit.value} jam`);
+  });
+}
+
+// === Form Akun ===
+const accountForm = document.getElementById('accountForm');
+if (accountForm) {
+  accountForm.addEventListener('submit', e => {
+    e.preventDefault();
+    alert(`✅ Data akun disimpan untuk ${accountForm.name.value}`);
+  });
+}
+
+// === Form Password ===
+const passwordForm = document.getElementById('passwordForm');
+if (passwordForm) {
+  passwordForm.addEventListener('submit', e => {
+    e.preventDefault();
+    alert("🔑 Password berhasil diubah!");
+    passwordForm.reset();
+  });
+}
+
+// === Tema Aplikasi (Dark Mode) + LocalStorage (FIXED) ===
+const themeForm = document.getElementById('themeForm');
+if (themeForm) {
+    // 1. Tambahkan event listener pada tombol submit (jika digunakan)
+    themeForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const selectedTheme = themeForm.querySelector('input[name="theme"]:checked').value;
+
+        if (selectedTheme === "dark") {
+            document.body.classList.add("dark");
+            document.documentElement.classList.add("dark"); // PERBAIKAN: Terapkan ke <html>
+            localStorage.setItem("theme", "dark");
+        } else {
+            document.body.classList.remove("dark");
+            document.documentElement.classList.remove("dark"); // PERBAIKAN: Hapus dari <html>
+            localStorage.setItem("theme", "light");
+        }
+        // alert(`✅ Tema ${selectedTheme} mode diterapkan!`); // Aktifkan jika perlu konfirmasi
+    });
+
+    // 2. Tambahkan event listener pada perubahan radio button agar tema langsung diterapkan
+    themeForm.querySelectorAll('input[name="theme"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const selectedTheme = e.target.value;
+            if (selectedTheme === "dark") {
+                document.body.classList.add("dark");
+                document.documentElement.classList.add("dark"); // PERBAIKAN: Terapkan ke <html>
+                localStorage.setItem("theme", "dark");
+            } else {
+                document.body.classList.remove("dark");
+                document.documentElement.classList.remove("dark"); // PERBAIKAN: Hapus dari <html>
+                localStorage.setItem("theme", "light");
+            }
+        });
+    });
+}
+</script>
+
+</body>
+</html>
